@@ -43,6 +43,7 @@ This phase is a read-only investigation completed directly by the orchestrating 
 7. **Check for existing UI dependencies.** Open `package.json` and scan the `dependencies` and `devDependencies` for icon libraries (e.g. Font Awesome, Feather Icons), UI frameworks (Tailwind, Vuetify, PrimeVue, Element Plus), or CSS-in-JS libraries. This determines whether new sidebar icons should be hand-coded inline SVGs (if no icon lib exists) or built using the existing framework.
 
 **Example walkthrough (inventory-management app):**
+
 - Root layout: `client/src/App.vue` — contains a sticky `<header class="top-nav">` (70px tall), a `.nav-container` with logo on the left and a `.nav-tabs` on the right (6 `router-link` elements, right-aligned via `margin-left: auto`). Active state via `:class="{ active: $route.path === '/x' }"` with blue text + bottom border. Below the header is a `<FilterBar />` component, then `<main class="main-content">` with `<router-view />`. Modal overlays and the profile menu are also rendered at the root level.
 - Router: inline in `client/src/main.js` — routes for `/`, `/inventory`, `/orders`, `/demand`, `/spending`, `/reports` (6 routes total, each importing a view component).
 - Views directory: `client/src/views/` — contains `Dashboard.vue`, `Inventory.vue`, `Orders.vue`, `Demand.vue`, `Spending.vue`, `Reports.vue` (all 6 registered), plus `Backlog.vue` (NOT registered — orphaned).
@@ -113,46 +114,48 @@ New layout (sidebar):
 
 ```vue
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
-import ProfileMenu from '@/components/ProfileMenu.vue'
-import FilterBar from '@/components/FilterBar.vue'
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
+import ProfileMenu from "@/components/ProfileMenu.vue";
+import FilterBar from "@/components/FilterBar.vue";
 // ... import any other components needed (modals, etc.) ...
 
-const route = useRoute()
-const showProfileDetails = ref(false)
-const showTasks = ref(false)
+const route = useRoute();
+const showProfileDetails = ref(false);
+const showTasks = ref(false);
 
 // Collapse state, persisted across sessions via localStorage
-const sidebarCollapsed = ref(localStorage.getItem('sidebarCollapsed') === 'true')
+const sidebarCollapsed = ref(
+  localStorage.getItem("sidebarCollapsed") === "true",
+);
 
 function toggleSidebar() {
-  sidebarCollapsed.value = !sidebarCollapsed.value
-  localStorage.setItem('sidebarCollapsed', sidebarCollapsed.value)
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+  localStorage.setItem("sidebarCollapsed", sidebarCollapsed.value);
 }
 
 // Adapt this list to the app's actual routes from Phase 1.
 // Include any newly-wired orphaned views from Phase 3.
 // Each entry needs a path (route), label (i18n key), and icon (inline SVG).
 const navItems = [
-  { path: '/',          label: 'nav.overview',      icon: 'grid' },
-  { path: '/inventory', label: 'nav.inventory',     icon: 'box' },
-  { path: '/orders',    label: 'nav.orders',        icon: 'clipboard' },
-  { path: '/spending',  label: 'nav.finance',       icon: 'dollar' },
-  { path: '/demand',    label: 'nav.demandForecast', icon: 'trending-up' },
-  { path: '/reports',   label: 'nav.reports',       icon: 'bar-chart' },
-  { path: '/backlog',   label: 'nav.backlog',       icon: 'list' } // newly wired from Phase 3
-]
+  { path: "/", label: "nav.overview", icon: "grid" },
+  { path: "/inventory", label: "nav.inventory", icon: "box" },
+  { path: "/orders", label: "nav.orders", icon: "clipboard" },
+  { path: "/spending", label: "nav.finance", icon: "dollar" },
+  { path: "/demand", label: "nav.demandForecast", icon: "trending-up" },
+  { path: "/reports", label: "nav.reports", icon: "bar-chart" },
+  { path: "/backlog", label: "nav.backlog", icon: "list" }, // newly wired from Phase 3
+];
 
 // Load task/profile state (example: these may come from api.js or useAuth)
-const tasks = ref([])
+const tasks = ref([]);
 async function loadTasks() {
   // tasks.value = await api.getTasks()
 }
 onMounted(() => {
-  loadTasks()
-})
+  loadTasks();
+});
 
 // Rest of component logic (task CRUD, profile details, etc.) remains unchanged
 </script>
@@ -181,27 +184,46 @@ onMounted(() => {
           <!-- Inline SVG icon (example structure; replace with actual icon paths) -->
           <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
             <!-- Icon content goes here; see examples below -->
-            <path v-if="item.icon === 'grid'" d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+            <path
+              v-if="item.icon === 'grid'"
+              d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"
+            />
             <!-- ... add paths for other icons: box, clipboard, dollar, trending-up, bar-chart, list ... -->
           </svg>
           <!-- Nav label, conditionally rendered when NOT collapsed -->
-          <span v-if="!sidebarCollapsed" class="nav-label">{{ $t(item.label) }}</span>
+          <span v-if="!sidebarCollapsed" class="nav-label">{{
+            $t(item.label)
+          }}</span>
         </router-link>
       </nav>
 
       <!-- Footer: utilities and collapse toggle -->
       <div class="sidebar-footer">
         <LanguageSwitcher />
-        <ProfileMenu @show-profile-details="showProfileDetails = true" @show-tasks="showTasks = true" />
+        <ProfileMenu
+          @show-profile-details="showProfileDetails = true"
+          @show-tasks="showTasks = true"
+        />
         <button
           class="sidebar-toggle"
           @click="toggleSidebar"
           :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
           aria-label="Toggle sidebar"
         >
-          <svg viewBox="0 0 24 24" width="18" height="18" :style="{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'none' }">
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            :style="{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'none' }"
+          >
             <!-- Chevron/arrow pointing left, rotated 180° when collapsed to point right -->
-            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path
+              d="M15 18l-6-6 6-6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
           </svg>
         </button>
       </div>
@@ -219,8 +241,15 @@ onMounted(() => {
     </div>
 
     <!-- Modal overlays (ProfileDetailsModal, TasksModal, etc.) remain unchanged -->
-    <ProfileDetailsModal :is-open="showProfileDetails" @close="showProfileDetails = false" />
-    <TasksModal :is-open="showTasks" @close="showTasks = false" :tasks="tasks" />
+    <ProfileDetailsModal
+      :is-open="showProfileDetails"
+      @close="showProfileDetails = false"
+    />
+    <TasksModal
+      :is-open="showTasks"
+      @close="showTasks = false"
+      :tasks="tasks"
+    />
   </div>
 </template>
 
@@ -385,6 +414,7 @@ onMounted(() => {
 ```
 
 **Important notes on this sketch:**
+
 - Replace `navItems` with the app's actual routes from Phase 1.
 - Replace each inline SVG `<path>` with the actual icon geometry for that item (grid, box, clipboard, etc.). Keep the `viewBox="0 0 24 24"` size and simple stroke/fill styles consistent with any existing icons in the app.
 - Replace every hex color value (`#ffffff`, `#f8fafc`, `#e2e8f0`, `#2563eb`, `#eff6ff`, `#64748b`, etc.) with the app's own exact palette from Phase 1.
@@ -407,6 +437,7 @@ Based on Phase 1's discoveries, update the router and add sidebar nav items for 
 4. **Never delete or rename existing route paths.** This preserves any bookmarks or deep links users may have created.
 
 **Example (inventory-management app):**
+
 - Existing routes: `/`, `/inventory`, `/orders`, `/spending`, `/demand`, `/reports` — create nav items for all 6, reusing their current labels (5 from i18n, 1 hardcoded "Reports" to be fixed to i18n).
 - Orphaned view: `Backlog.vue` exists but has no route. Add route `{ path: '/backlog', component: Backlog }` to the router (importing Backlog from `'./views/Backlog.vue'`). Add a nav item for `/backlog` with label `t('nav.backlog')` and an appropriate icon (e.g. "list"). Add the `nav.backlog` key to the locale files if it doesn't exist.
 
@@ -425,6 +456,7 @@ Find and recalculate any sticky/fixed positioning that was anchored to the old h
 5. **Search broadly:** Don't just fix the flagged components — grep the entire source for any other hardcoded pixel values that might match the header height, in case more than one place references it.
 
 **Example (inventory-management app):**
+
 - FilterBar's `.filters-bar` has `position: sticky; top: 70px; z-index: 90;`. Change to `top: 0` since FilterBar moves to the top of the content column.
 - FilterBar's `.filters-container` has `max-width: 1600px; margin: 0 auto; padding: 0 2rem;`. Remove the `max-width` and `margin: 0 auto` centering, or set `max-width` to `100%`, so it expands to fill the content column's width instead of re-centering within it.
 
@@ -470,7 +502,7 @@ Run a browser-based verification sequence to confirm the redesign is functional 
    - Verify the correct view renders (e.g., `/inventory` shows the inventory table, `/backlog` shows the backlog stats + table, etc.).
    - Confirm the nav item styling shows the active state (left border accent + tinted background + correct color).
 
-6. **Test collapse/expand:** 
+6. **Test collapse/expand:**
    - `mcp__playwright__browser_click` on the collapse toggle button.
    - `mcp__playwright__browser_snapshot` to confirm the sidebar shrinks to a narrow icon-only rail (~64px wide), labels disappear, icons remain centered.
    - Hover over one or two icon-only nav items (use `browser_hover` or manually test in a browser if Playwright hover isn't reliable) and confirm the `title` attribute displays the label as a tooltip.
@@ -508,19 +540,19 @@ Delegate a code review to the project's `code-reviewer` subagent, per the root `
 
 For this specific inventory-management app, the skill's execution maps as follows. Use this table to sanity-check Phase 1's discovery against the actual app if you're testing the skill:
 
-| Phase | Step | Inventory-Management App | Notes |
-|-------|------|--------------------------|-------|
-| 1 | Root layout | `client/src/App.vue` | `.top-nav` header (70px), 6 nav links, `.main-content`, FilterBar, modals. Global styles in `<style>` block. |
-| 1 | Router | `client/src/main.js` | 6 routes: `/`, `/inventory`, `/orders`, `/demand`, `/spending`, `/reports`. Backlog route missing. |
-| 1 | Views | `client/src/views/` | 7 files: Dashboard, Inventory, Orders, Demand, Spending, Reports, Backlog (orphaned). |
-| 1 | Nav labels | App.vue | All use `t('nav.x')` except "Reports" (hardcoded). |
-| 1 | Global palette | App.vue `<style>` | Colors: `#ffffff`, `#f8fafc`, `#e2e8f0`, `#2563eb`, `#eff6ff`, `#475569`, `#64748b`, etc. (hardcoded hex). |
-| 1 | Header-coupled | `FilterBar.vue` | `position: sticky; top: 70px; z-index: 90;` on `.filters-bar`. `max-width: 1600px; margin: 0 auto;` on `.filters-container`. |
-| 1 | UI libs | `package.json` | None. Icons are hand-coded inline SVGs. |
-| 2 | Sidebar width | Expanded: 240px, Collapsed: 64px | CSS `transition: width 0.2s ease`. |
-| 2 | Colors | Existing blue `#2563eb` + `#eff6ff` | No new colors introduced. |
-| 3 | Orphaned | Backlog.vue | Add route `/backlog` + nav item `nav.backlog` (new i18n key). |
-| 4 | Re-anchor | FilterBar | `top: 70px` → `top: 0`; remove `max-width: 1600px; margin: 0 auto;`. |
-| 5 | Delegate to | vue-expert | App.vue restructure, router update, FilterBar CSS, i18n fix. |
-| 6 | Playwright | localhost:3000 | Navigate, click nav items, toggle collapse, reload for persistence, screenshot. |
-| 7 | Review | code-reviewer | App.vue, main.js, FilterBar.vue, locale files. |
+| Phase | Step           | Inventory-Management App            | Notes                                                                                                                        |
+| ----- | -------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1     | Root layout    | `client/src/App.vue`                | `.top-nav` header (70px), 6 nav links, `.main-content`, FilterBar, modals. Global styles in `<style>` block.                 |
+| 1     | Router         | `client/src/main.js`                | 6 routes: `/`, `/inventory`, `/orders`, `/demand`, `/spending`, `/reports`. Backlog route missing.                           |
+| 1     | Views          | `client/src/views/`                 | 7 files: Dashboard, Inventory, Orders, Demand, Spending, Reports, Backlog (orphaned).                                        |
+| 1     | Nav labels     | App.vue                             | All use `t('nav.x')` except "Reports" (hardcoded).                                                                           |
+| 1     | Global palette | App.vue `<style>`                   | Colors: `#ffffff`, `#f8fafc`, `#e2e8f0`, `#2563eb`, `#eff6ff`, `#475569`, `#64748b`, etc. (hardcoded hex).                   |
+| 1     | Header-coupled | `FilterBar.vue`                     | `position: sticky; top: 70px; z-index: 90;` on `.filters-bar`. `max-width: 1600px; margin: 0 auto;` on `.filters-container`. |
+| 1     | UI libs        | `package.json`                      | None. Icons are hand-coded inline SVGs.                                                                                      |
+| 2     | Sidebar width  | Expanded: 240px, Collapsed: 64px    | CSS `transition: width 0.2s ease`.                                                                                           |
+| 2     | Colors         | Existing blue `#2563eb` + `#eff6ff` | No new colors introduced.                                                                                                    |
+| 3     | Orphaned       | Backlog.vue                         | Add route `/backlog` + nav item `nav.backlog` (new i18n key).                                                                |
+| 4     | Re-anchor      | FilterBar                           | `top: 70px` → `top: 0`; remove `max-width: 1600px; margin: 0 auto;`.                                                         |
+| 5     | Delegate to    | vue-expert                          | App.vue restructure, router update, FilterBar CSS, i18n fix.                                                                 |
+| 6     | Playwright     | localhost:3000                      | Navigate, click nav items, toggle collapse, reload for persistence, screenshot.                                              |
+| 7     | Review         | code-reviewer                       | App.vue, main.js, FilterBar.vue, locale files.                                                                               |

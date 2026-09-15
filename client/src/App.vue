@@ -2,8 +2,10 @@
   <div class="app-shell">
     <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-brand">
-        <h1 v-if="!sidebarCollapsed">{{ t('nav.companyName') }}</h1>
-        <span v-else class="brand-mark">{{ t('nav.companyName').charAt(0) }}</span>
+        <h1 v-if="!sidebarCollapsed">{{ t("nav.companyName") }}</h1>
+        <span v-else class="brand-mark">{{
+          t("nav.companyName").charAt(0)
+        }}</span>
       </div>
 
       <nav class="sidebar-nav">
@@ -16,9 +18,18 @@
           :title="sidebarCollapsed ? t(item.label) : null"
         >
           <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
-            <path :d="getIcon(item.icon)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path
+              :d="getIcon(item.icon)"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
-          <span v-if="!sidebarCollapsed" class="nav-label">{{ t(item.label) }}</span>
+          <span v-if="!sidebarCollapsed" class="nav-label">{{
+            t(item.label)
+          }}</span>
         </router-link>
       </nav>
 
@@ -33,8 +44,20 @@
           @click="toggleSidebar"
           :title="sidebarCollapsed ? 'Expand' : 'Collapse'"
         >
-          <svg viewBox="0 0 24 24" width="18" height="18" :style="{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'none' }">
-            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            :style="{ transform: sidebarCollapsed ? 'rotate(180deg)' : 'none' }"
+          >
+            <path
+              d="M15 18l-6-6 6-6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </button>
       </div>
@@ -64,117 +87,121 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { api } from './api'
-import { useAuth } from './composables/useAuth'
-import { useI18n } from './composables/useI18n'
-import FilterBar from './components/FilterBar.vue'
-import ProfileMenu from './components/ProfileMenu.vue'
-import ProfileDetailsModal from './components/ProfileDetailsModal.vue'
-import TasksModal from './components/TasksModal.vue'
-import LanguageSwitcher from './components/LanguageSwitcher.vue'
+import { ref, computed, onMounted } from "vue";
+import { api } from "./api";
+import { useAuth } from "./composables/useAuth";
+import { useI18n } from "./composables/useI18n";
+import FilterBar from "./components/FilterBar.vue";
+import ProfileMenu from "./components/ProfileMenu.vue";
+import ProfileDetailsModal from "./components/ProfileDetailsModal.vue";
+import TasksModal from "./components/TasksModal.vue";
+import LanguageSwitcher from "./components/LanguageSwitcher.vue";
 
-const { currentUser } = useAuth()
-const { t } = useI18n()
+const { currentUser } = useAuth();
+const { t } = useI18n();
 
-const showProfileDetails = ref(false)
-const showTasks = ref(false)
-const apiTasks = ref([])
-const sidebarCollapsed = ref(localStorage.getItem('sidebarCollapsed') === 'true')
+const showProfileDetails = ref(false);
+const showTasks = ref(false);
+const apiTasks = ref([]);
+const sidebarCollapsed = ref(
+  localStorage.getItem("sidebarCollapsed") === "true",
+);
 
 const navItems = [
-  { path: '/', label: 'nav.overview', icon: 'grid' },
-  { path: '/inventory', label: 'nav.inventory', icon: 'box' },
-  { path: '/orders', label: 'nav.orders', icon: 'clipboard' },
-  { path: '/spending', label: 'nav.finance', icon: 'dollar' },
-  { path: '/demand', label: 'nav.demandForecast', icon: 'trending-up' },
-  { path: '/reports', label: 'nav.reports', icon: 'bar-chart' },
-  { path: '/backlog', label: 'nav.backlog', icon: 'list' }
-]
+  { path: "/", label: "nav.overview", icon: "grid" },
+  { path: "/inventory", label: "nav.inventory", icon: "box" },
+  { path: "/orders", label: "nav.orders", icon: "clipboard" },
+  { path: "/spending", label: "nav.finance", icon: "dollar" },
+  { path: "/demand", label: "nav.demandForecast", icon: "trending-up" },
+  { path: "/reports", label: "nav.reports", icon: "bar-chart" },
+  { path: "/backlog", label: "nav.backlog", icon: "list" },
+];
 
 const iconPaths = {
-  grid: 'M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z',
-  box: 'M3 3h18v5H3V3zm0 7h18v9H3v-9zm0 11h18v2H3v-2z',
-  clipboard: 'M7 3h10v2H7V3zm0 4h10v13H7V7zm2-2h6V2h-6v1z',
-  dollar: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z',
-  'trending-up': 'M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18 9 12.41l4 4 6.3-6.29L22 12v-6z',
-  'bar-chart': 'M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z',
-  list: 'M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z'
-}
+  grid: "M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z",
+  box: "M3 3h18v5H3V3zm0 7h18v9H3v-9zm0 11h18v2H3v-2z",
+  clipboard: "M7 3h10v2H7V3zm0 4h10v13H7V7zm2-2h6V2h-6v1z",
+  dollar:
+    "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z",
+  "trending-up":
+    "M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18 9 12.41l4 4 6.3-6.29L22 12v-6z",
+  "bar-chart": "M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z",
+  list: "M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z",
+};
 
-const getIcon = (name) => iconPaths[name] || iconPaths.grid
+const getIcon = (name) => iconPaths[name] || iconPaths.grid;
 
 const toggleSidebar = () => {
-  sidebarCollapsed.value = !sidebarCollapsed.value
-  localStorage.setItem('sidebarCollapsed', sidebarCollapsed.value)
-}
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+  localStorage.setItem("sidebarCollapsed", sidebarCollapsed.value);
+};
 
 // Merge mock tasks from currentUser with API tasks
 const tasks = computed(() => {
-  return [...currentUser.value.tasks, ...apiTasks.value]
-})
+  return [...currentUser.value.tasks, ...apiTasks.value];
+});
 
 const loadTasks = async () => {
   try {
-    apiTasks.value = await api.getTasks()
+    apiTasks.value = await api.getTasks();
   } catch (err) {
-    console.error('Failed to load tasks:', err)
+    console.error("Failed to load tasks:", err);
   }
-}
+};
 
 const addTask = async (taskData) => {
   try {
-    const newTask = await api.createTask(taskData)
+    const newTask = await api.createTask(taskData);
     // Add new task to the beginning of the array
-    apiTasks.value.unshift(newTask)
+    apiTasks.value.unshift(newTask);
   } catch (err) {
-    console.error('Failed to add task:', err)
+    console.error("Failed to add task:", err);
   }
-}
+};
 
 const deleteTask = async (taskId) => {
   try {
     // Check if it's a mock task (from currentUser)
-    const isMockTask = currentUser.value.tasks.some(t => t.id === taskId)
+    const isMockTask = currentUser.value.tasks.some((t) => t.id === taskId);
 
     if (isMockTask) {
       // Remove from mock tasks
-      const index = currentUser.value.tasks.findIndex(t => t.id === taskId)
+      const index = currentUser.value.tasks.findIndex((t) => t.id === taskId);
       if (index !== -1) {
-        currentUser.value.tasks.splice(index, 1)
+        currentUser.value.tasks.splice(index, 1);
       }
     } else {
       // Remove from API tasks
-      await api.deleteTask(taskId)
-      apiTasks.value = apiTasks.value.filter(t => t.id !== taskId)
+      await api.deleteTask(taskId);
+      apiTasks.value = apiTasks.value.filter((t) => t.id !== taskId);
     }
   } catch (err) {
-    console.error('Failed to delete task:', err)
+    console.error("Failed to delete task:", err);
   }
-}
+};
 
 const toggleTask = async (taskId) => {
   try {
     // Check if it's a mock task (from currentUser)
-    const mockTask = currentUser.value.tasks.find(t => t.id === taskId)
+    const mockTask = currentUser.value.tasks.find((t) => t.id === taskId);
 
     if (mockTask) {
       // Toggle mock task status
-      mockTask.status = mockTask.status === 'pending' ? 'completed' : 'pending'
+      mockTask.status = mockTask.status === "pending" ? "completed" : "pending";
     } else {
       // Toggle API task
-      const updatedTask = await api.toggleTask(taskId)
-      const index = apiTasks.value.findIndex(t => t.id === taskId)
+      const updatedTask = await api.toggleTask(taskId);
+      const index = apiTasks.value.findIndex((t) => t.id === taskId);
       if (index !== -1) {
-        apiTasks.value[index] = updatedTask
+        apiTasks.value[index] = updatedTask;
       }
     }
   } catch (err) {
-    console.error('Failed to toggle task:', err)
+    console.error("Failed to toggle task:", err);
   }
-}
+};
 
-onMounted(loadTasks)
+onMounted(loadTasks);
 </script>
 
 <style>
@@ -185,7 +212,16 @@ onMounted(loadTasks)
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    sans-serif;
   background: #f8fafc;
   color: #1e293b;
   -webkit-font-smoothing: antialiased;

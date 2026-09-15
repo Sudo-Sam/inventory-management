@@ -126,13 +126,15 @@ export const api = {
   },
 
   async getMetricsData(metricType, timeRange = {}) {
-    const p = new URLSearchParams();
-    if (metricType && metricType !== "all") p.append("type", metricType);
-    if (timeRange.start) p.append("start", timeRange.start);
+    const params = new URLSearchParams();
+    if (metricType && metricType !== "all") params.append("type", metricType);
+    if (timeRange.start) params.append("start", timeRange.start);
     if (timeRange.end) {
-      p.append("end", timeRange.end);
+      params.append("end", timeRange.end);
     }
-    let r = await axios.get(`${API_BASE_URL}/metrics?${p.toString()}`);
-    return r.data;
+    const response = await axios.get(
+      `${API_BASE_URL}/metrics?${params.toString()}`,
+    );
+    return response.data;
   },
 };

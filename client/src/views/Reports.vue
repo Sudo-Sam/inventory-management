@@ -208,8 +208,18 @@ export default {
 
     // Format month string (YYYY-MM) to readable format
     const formatMonth = (monthStr) => {
+      if (!monthStr || typeof monthStr !== "string") {
+        return "-";
+      }
       const parts = monthStr.split("-");
-      const monthIndex = parseInt(parts[1]) - 1;
+      if (parts.length < 2) {
+        return monthStr;
+      }
+      const monthNum = parseInt(parts[1]);
+      if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+        return monthStr;
+      }
+      const monthIndex = monthNum - 1;
       const monthNames = [
         "Jan",
         "Feb",
@@ -285,10 +295,17 @@ export default {
 
         // Convert maps to sorted arrays
         quarterlyData.value = Object.values(quarterlyMap).sort((a, b) => {
-          const aQuarter = parseInt(a.quarter.match(/\d+/)[0]);
-          const aYear = parseInt(a.quarter.match(/\d{4}/)[0]);
-          const bQuarter = parseInt(b.quarter.match(/\d+/)[0]);
-          const bYear = parseInt(b.quarter.match(/\d{4}/)[0]);
+          // Extract quarter and year with null checks
+          const aQuarterMatch = a.quarter.match(/\d+/);
+          const aYearMatch = a.quarter.match(/\d{4}/);
+          const bQuarterMatch = b.quarter.match(/\d+/);
+          const bYearMatch = b.quarter.match(/\d{4}/);
+
+          const aQuarter = aQuarterMatch ? parseInt(aQuarterMatch[0]) : 0;
+          const aYear = aYearMatch ? parseInt(aYearMatch[0]) : 0;
+          const bQuarter = bQuarterMatch ? parseInt(bQuarterMatch[0]) : 0;
+          const bYear = bYearMatch ? parseInt(bYearMatch[0]) : 0;
+
           return aYear - bYear || aQuarter - bQuarter;
         });
 
@@ -308,7 +325,8 @@ export default {
         // Calculate summary stats
         calculateSummaryStats();
       } catch (err) {
-        error.value = t("common.error") + ": " + err.message;
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        error.value = `${t("common.error")}: ${errorMsg}`;
       } finally {
         loading.value = false;
       }

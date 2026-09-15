@@ -78,6 +78,8 @@ export function useI18n() {
   const translateProductName = (productName) => {
     if (
       currentLocale.value === "ja" &&
+      translations.ja &&
+      translations.ja.productNames &&
       translations.ja.productNames[productName]
     ) {
       return translations.ja.productNames[productName];
@@ -89,6 +91,8 @@ export function useI18n() {
   const translateCustomerName = (customerName) => {
     if (
       currentLocale.value === "ja" &&
+      translations.ja &&
+      translations.ja.customerNames &&
       translations.ja.customerNames[customerName]
     ) {
       return translations.ja.customerNames[customerName];
